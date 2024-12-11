@@ -1,0 +1,294 @@
+import java.util.Scanner;
+import java.util.Random;
+
+public class StudentManagement {
+    private static StudentStack studentStack = new StudentStack(); // Using custom StudentStack
+    private static Scanner scanner = new Scanner(System.in);
+    private static Random random = new Random();
+
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\nStudent Management System:");
+            System.out.println("1. Add Student");
+            System.out.println("2. Delete Student");
+            System.out.println("3. Update Student");
+            System.out.println("4. Display Students");
+            System.out.println("5. Sort Students");
+            System.out.println("6. Add Random Students");
+            System.out.println("7. Exit");
+            System.out.print("Choose an option: ");
+
+            if (!scanner.hasNextInt()) {
+                System.out.println("Invalid input. Please enter a number.");
+                scanner.nextLine(); // Clear invalid input
+                continue;
+            }
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    addStudent();
+                    break;
+                case 2:
+                    deleteStudent();
+                    break;
+                case 3:
+                    updateStudent();
+                    break;
+                case 4:
+                    displayStudents();
+                    break;
+                case 5:
+                    sortStudents();
+                    break;
+                case 6:
+                    addRandomStudents();
+                    break;
+                case 7:
+                    System.out.println("Exiting... Goodbye!");
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void addStudent() {
+        System.out.print("Enter student name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter student score: ");
+        if (!scanner.hasNextDouble()) {
+            System.out.println("Invalid score. Please enter a numeric value.");
+            scanner.nextLine(); // Clear invalid input
+            return;
+        }
+        double score = scanner.nextDouble();
+        scanner.nextLine(); // Consume newline
+
+        Student student = new Student(name, score);
+        studentStack.push(student);
+        System.out.println("Student added successfully.");
+    }
+
+    private static void deleteStudent() {
+        System.out.print("Enter student name to delete: ");
+        String name = scanner.nextLine();
+
+        boolean removed = false;
+        StudentStack tempStack = new StudentStack();
+        while (!studentStack.isEmpty()) {
+            Student student = studentStack.pop();
+            if (student.name.equalsIgnoreCase(name)) {
+                removed = true;
+                break;
+            } else {
+                tempStack.push(student);
+            }
+        }
+
+        while (tempStack.size() > 0) {
+            studentStack.push(tempStack.pop()); // Restore the stack
+        }
+
+        if (removed) {
+            System.out.println("Student deleted successfully.");
+        } else {
+            System.out.println("Student not found.");
+        }
+    }
+
+    private static void updateStudent() {
+        System.out.print("Enter student name to update: ");
+        String name = scanner.nextLine();
+
+        boolean found = false;
+        StudentStack tempStack = new StudentStack();
+        while (!studentStack.isEmpty()) {
+            Student student = studentStack.pop();
+            if (student.name.equalsIgnoreCase(name)) {
+                System.out.print("Enter new name: ");
+                student.name = scanner.nextLine();
+                System.out.print("Enter new score: ");
+                if (!scanner.hasNextDouble()) {
+                    System.out.println("Invalid score. Please enter a numeric value.");
+                    scanner.nextLine(); // Clear invalid input
+                    return;
+                }
+                student.score = scanner.nextDouble();
+                scanner.nextLine(); // Consume newline
+                found = true;
+                tempStack.push(student);
+                break;
+            } else {
+                tempStack.push(student);
+            }
+        }
+
+        while (tempStack.size() > 0) {
+            studentStack.push(tempStack.pop()); // Restore the stack
+        }
+
+        if (found) {
+            System.out.println("Student updated successfully.");
+        } else {
+            System.out.println("Student not found.");
+        }
+    }
+
+    private static void displayStudents() {
+        if (studentStack.isEmpty()) {
+            System.out.println("No students to display.");
+        } else {
+            studentStack.display(); // Using custom method to display students
+        }
+    }
+
+    private static void sortStudents() {
+        System.out.println("\nSort by:");
+        System.out.println("1. Name (BubbleSort)");
+        System.out.println("2. Score (BubbleSort)");
+        System.out.println("3. Name (MergeSort)");
+        System.out.println("4. Score (MergeSort)");
+        System.out.print("Choose an option: ");
+        if (!scanner.hasNextInt()) {
+            System.out.println("Invalid input. Please enter a number.");
+            scanner.nextLine(); // Clear invalid input
+            return;
+        }
+        int option = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        long startTime, endTime;
+
+        switch (option) {
+            case 1:
+                startTime = System.nanoTime();
+                bubbleSort(true); // Sort by name using BubbleSort
+                endTime = System.nanoTime();
+                System.out.println("Students sorted by name using BubbleSort.");
+                System.out.println("BubbleSort Time: " + (endTime - startTime) / 1_000_000.0 + " ms.");
+                break;
+            case 2:
+                startTime = System.nanoTime();
+                bubbleSort(false); // Sort by score using BubbleSort
+                endTime = System.nanoTime();
+                System.out.println("Students sorted by score using BubbleSort.");
+                System.out.println("BubbleSort Time: " + (endTime - startTime) / 1_000_000.0 + " ms.");
+                break;
+            case 3:
+                startTime = System.nanoTime();
+                mergeSort(true); // Sort by name using MergeSort
+                endTime = System.nanoTime();
+                System.out.println("Students sorted by name using MergeSort.");
+                System.out.println("MergeSort Time: " + (endTime - startTime) / 1_000_000.0 + " ms.");
+                break;
+            case 4:
+                startTime = System.nanoTime();
+                mergeSort(false); // Sort by score using MergeSort
+                endTime = System.nanoTime();
+                System.out.println("Students sorted by score using MergeSort.");
+                System.out.println("MergeSort Time: " + (endTime - startTime) / 1_000_000.0 + " ms.");
+                break;
+            default:
+                System.out.println("Invalid option.");
+                return;
+        }
+    }
+
+    private static void bubbleSort(boolean byName) {
+        Student[] studentArray = studentStack.toArray();
+        for (int i = 0; i < studentArray.length - 1; i++) {
+            for (int j = 0; j < studentArray.length - i - 1; j++) {
+                boolean condition = byName ? studentArray[j].name.compareTo(studentArray[j + 1].name) > 0 : studentArray[j].score > studentArray[j + 1].score;
+                if (condition) {
+                    // Swap the elements
+                    Student temp = studentArray[j];
+                    studentArray[j] = studentArray[j + 1];
+                    studentArray[j + 1] = temp;
+                }
+            }
+        }
+
+        studentStack.clear();
+        for (Student student : studentArray) {
+            studentStack.push(student);
+        }
+    }
+
+    private static void mergeSort(boolean byName) {
+        Student[] studentArray = studentStack.toArray();
+        mergeSortRecursive(studentArray, 0, studentArray.length - 1, byName);
+
+        studentStack.clear();
+        for (Student student : studentArray) {
+            studentStack.push(student);
+        }
+    }
+
+    private static void mergeSortRecursive(Student[] array, int left, int right, boolean byName) {
+        if (left < right) {
+            int mid = (left + right) / 2;
+
+            mergeSortRecursive(array, left, mid, byName);
+            mergeSortRecursive(array, mid + 1, right, byName);
+
+            merge(array, left, mid, right, byName);
+        }
+    }
+
+    private static void merge(Student[] array, int left, int mid, int right, boolean byName) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+
+        Student[] leftArray = new Student[n1];
+        Student[] rightArray = new Student[n2];
+
+        System.arraycopy(array, left, leftArray, 0, n1);
+        System.arraycopy(array, mid + 1, rightArray, 0, n2);
+
+        int i = 0, j = 0, k = left;
+        while (i < n1 && j < n2) {
+            boolean condition = byName ? leftArray[i].name.compareTo(rightArray[j].name) < 0 : leftArray[i].score < rightArray[j].score;
+            if (condition) {
+                array[k++] = leftArray[i++];
+            } else {
+                array[k++] = rightArray[j++];
+            }
+        }
+
+        while (i < n1) {
+            array[k++] = leftArray[i++];
+        }
+
+        while (j < n2) {
+            array[k++] = rightArray[j++];
+        }
+    }
+
+    private static void addRandomStudents() {
+        System.out.print("Enter the number of random students to add: ");
+        if (!scanner.hasNextInt()) {
+            System.out.println("Invalid input. Please enter a valid number.");
+            scanner.nextLine(); // Clear invalid input
+            return;
+        }
+        int count = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        if (studentStack.size() + count > 10000) { // Check if adding exceeds stack limit
+            System.out.println("Cannot add that many students. Stack can hold a maximum of " + (10000 - studentStack.size()) + " more students.");
+            return;
+        }
+
+        for (int i = 0; i < count; i++) {
+            String randomName = "Student" + (random.nextInt(900) + 100); // Random name like Student123
+            double randomScore = random.nextDouble() * 100; // Random score between 0 and 100
+            Student student = new Student(randomName, randomScore);
+            studentStack.push(student);
+        }
+
+        System.out.println(count + " random students added successfully.");
+    }
+}
